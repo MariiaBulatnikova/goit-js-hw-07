@@ -1,42 +1,71 @@
+
 import { galleryItems } from './gallery-items.js';
 
-const galleryItemsMarkUp = galleryItems
-  .map(({ preview, original, description }) => {
-    return `
-<div class="gallery__item">
-  <a class="gallery__link" href="${original}"  >
-    <img
-      class="gallery__image"
-      src="${preview}"
-      data-source="${original}"
-      alt="${description}"
-    />
-  </a>
-</div>
-    `;
-  })
-  .join('');
+// Change code below this line
 
-const gallery = document.querySelector('div.gallery');
+const galleryItemsMarkup = ({ preview, original, description }) => {
+  return `
+  <div class="gallery__item">
+    <a class="gallery__link" href="${original}">
+      <img
+        class="gallery__image"
+        src="${preview}"
+        data-source="${original}"
+        alt="${description}"
+      />
+    </a>
+  </div>
+  `;
+};
 
-gallery.insertAdjacentHTML('beforeend', galleryItemsMarkUp);
+const galleryItemsSort = galleryItems.map(galleryItemsMarkup).join('');
 
-gallery.addEventListener('click', e => {
-  e.preventDefault();
+const galleryEl = document.querySelector(".gallery");
 
-  const instance = createInstance(e);
+galleryEl.insertAdjacentHTML('beforeend', galleryItemsSort);
+
+galleryEl.addEventListener('click', onImageScaleClick);
+
+function onImageScaleClick(event) {
+
+  if (event.target.nodeName !== 'IMG') {
+    return;
+  }
+  event.preventDefault();
+  
+  modalShow(event.target.dataset.source);  
+} 
+
+let instance;
+
+function modalShow(src) {
+  instance = basicLightbox.create(
+    `
+    <div class="modal">
+        <img src="${src}" style="height:100vh; display:block"></img>
+    </div>
+`,
+    {
+      onShow: instance => {
+        addListener();
+      },
+      onClose: instance => {
+        removeListener();
+      },
+    },
+  );
   instance.show();
-
-  document.addEventListener('keydown', isEscapeKeydown.bind(gallery, instance));
-});
-
-function createInstance(e) {
-  return basicLightbox.create(`<img  src="${e.target.getAttribute('data-source')}">`);
+}
+function addListener() {
+  window.addEventListener('keydown', onEscapeBtn);
 }
 
-function isEscapeKeydown(instance, event) {
+function onEscapeBtn(event) {
   if (event.code === 'Escape') {
-    document.removeEventListener('keydown', isEscapeKeydown);
     instance.close();
   }
+}
+
+function removeListener() {
+  window.removeEventListener('keydown', onEscapeBtn);
 }
